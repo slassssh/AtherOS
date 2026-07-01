@@ -8,11 +8,12 @@ from backend.app.planner.planner import Planner
 planner = Planner()
 
 plan = planner.create_plan(
-    "Research AI Operating Systems"
+    "Research AI Operating Systems, summarize the findings, create a PowerPoint and email it"
 )
 
 print(plan.goal)
+print()
 
-print(len(plan.tasks))
-
-print(plan.tasks[0].description)
+for i, task in enumerate(plan.tasks, start=1):
+    print(f"{i}. {task.description}")
+    print(f"   Depends On: {len(task.depends_on)}")
