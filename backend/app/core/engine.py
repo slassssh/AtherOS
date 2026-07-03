@@ -108,27 +108,35 @@ class Engine:
         return ready
 
     def execute_task(self, task):
-        """
-        Simulate execution of a task.
-        Later this will call the Tool Registry.
-        """
 
-        from backend.app.planner.task import TaskStatus
+        try:
+            task.status = TaskStatus.RUNNING
 
-        task.status = TaskStatus.RUNNING
+            # actual tool execution comes later
 
-        # Tool execution will happen here later
+            task.status = TaskStatus.COMPLETED
 
-        task.status = TaskStatus.COMPLETED
+            event = JournalEvent(
+                session_id=None,
+                sequence_number=self.journal.event_count() + 1,
+                event_type=EventType.TASK_COMPLETED,
+                actor=ActorType.ENGINE,
+                payload={
+                    "task": task.description,
+                },
+            )
 
-        event = JournalEvent(
-            session_id=None,   # We'll replace this with the real session later
-            sequence_number=self.journal.event_count() + 1,
-            event_type=EventType.TASK_COMPLETED,
-            actor=ActorType.ENGINE,
-            payload={
-                "task": task.description,
-            },
-        )
+            self.journal.add_event(event)
 
-        self.journal.add_event(event)
+            return True
+
+
+        except Exception as error:
+
+            task.retry_count += 1
+            task.error = str(error)
+
+            if task.retry_count >= task.max_retries:
+                task.status = TaskStatus.FAILED
+
+            return False
