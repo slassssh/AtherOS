@@ -10,7 +10,7 @@ from typing import List
 from backend.app.core.events import JournalEvent
 
 
-class Journal:
+class Journal:  
     """
     In-memory event journal for Version 0.1.
 

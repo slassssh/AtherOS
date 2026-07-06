@@ -10,20 +10,41 @@ from backend.app.tools.file_tool import FileTool
 tool = FileTool()
 
 
-write_result = tool.execute(
-    action="write",
-    path="test.txt",
-    content="Hello from AtherOS"
+print(
+    tool.execute(
+        action="mkdir",
+        path="test_folder"
+    )
 )
 
 
-print(write_result)
-
-
-read_result = tool.execute(
-    action="read",
-    path="test.txt"
+print(
+    tool.execute(
+        action="write",
+        path="test_folder/test.txt",
+        content="AtherOS Phase 4"
+    )
 )
 
 
-print(read_result)
+print(
+    tool.execute(
+        action="read",
+        path="test_folder/test.txt"
+    )
+)
+
+
+print(
+    tool.execute(
+        action="list",
+        path="test_folder"
+    )
+)
+print(
+    tool.execute(
+        action="search",
+        path="test_folder",
+        pattern="*.txt"
+    )
+)
