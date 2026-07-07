@@ -1,0 +1,17 @@
+class SharedContext:
+
+    def __init__(self):
+
+        self.context = {}
+
+
+    def update(self, key, value):
+
+        self.context[key] = value
+
+        return True
+
+
+    def get(self, key):
+
+        return self.context.get(key)
