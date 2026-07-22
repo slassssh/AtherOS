@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict
 from uuid import UUID, uuid4
-from enum import Enum
 
 
 class TaskStatus(Enum):
@@ -11,6 +11,7 @@ class TaskStatus(Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+
 
 @dataclass
 class Task:
@@ -22,8 +23,26 @@ class Task:
     depends_on: list[UUID] = field(default_factory=list)
 
     tool: str | None = None
-    retry_count: int = 0
+    tool_input: Dict[str, Any] = field(default_factory=dict)
+    output: Any = None
 
+    retry_count: int = 0
     max_retries: int = 3
 
     error: str | None = None
+    execution_time: float = 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Return structured task execution dictionary.
+        """
+        return {
+            "task_id": str(self.task_id),
+            "description": self.description,
+            "tool_name": self.tool,
+            "tool_input": self.tool_input,
+            "status": self.status.value if isinstance(self.status, TaskStatus) else str(self.status),
+            "output": self.output,
+            "error": self.error,
+            "execution_time": round(self.execution_time, 4),
+        }

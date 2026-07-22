@@ -1,7 +1,9 @@
+from backend.app.api.app import app
 from backend.app.config.config import settings
 from backend.app.database.connection import DatabaseConnection
 from backend.app.utils.logger import logger
 from backend.app.utils.exceptions import AtherOSError
+
 
 def main():
 

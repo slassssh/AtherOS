@@ -5,13 +5,13 @@ Executes Python code snippets.
 """
 
 
-import io
-import contextlib
+from typing import Optional
 
 from backend.app.tools.base import BaseTool
-from backend.app.tools.result import ToolResult
 from backend.app.tools.metadata import ToolMetadata
 from backend.app.tools.permissions import ToolPermission
+from backend.app.tools.result import ToolResult
+from backend.app.tools.sandbox import ToolSandbox
 from backend.app.tools.schema import ToolSchema
 
 
@@ -19,47 +19,30 @@ class PythonTool(BaseTool):
 
     metadata = ToolMetadata(
         name="python",
-        description="Execute Python code",
+        description="Execute Python code snippets inside an isolated sandbox",
         category="execution",
         permissions=[
-            ToolPermission.CODE_EXECUTION
+            ToolPermission.RUN_PYTHON
         ]
     )
-    schema = ToolSchema(
-    required=[
-        "code"
-    ]
-)
 
+    schema = ToolSchema(
+        required=[
+            "code"
+        ]
+    )
+
+    def __init__(self, sandbox: Optional[ToolSandbox] = None):
+        self.sandbox = sandbox or ToolSandbox()
 
     def execute(
         self,
-        code: str
+        code: str,
+        session_id: Optional[str] = None,
+        **kwargs
     ) -> ToolResult:
-
-
-        try:
-
-            output = io.StringIO()
-
-
-            with contextlib.redirect_stdout(output):
-
-                exec(
-                    code,
-                    {}
-                )
-
-
-            return ToolResult(
-                success=True,
-                output=output.getvalue()
-            )
-
-
-        except Exception as error:
-
-            return ToolResult(
-                success=False,
-                error=str(error)
-            )
+        """
+        Executes Python code via the hardened ToolSandbox subprocess runner.
+        No raw in-process exec() is permitted.
+        """
+        return self.sandbox.execute_python_code(code, session_id=session_id)

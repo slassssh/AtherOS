@@ -86,7 +86,7 @@ class JournalEvent:
     stored inside the Unified Journal.
     """
 
-    session_id: UUID
+    session_id: UUID | str
     sequence_number: int
 
     event_type: EventType
@@ -99,3 +99,28 @@ class JournalEvent:
     event_id: UUID = field(default_factory=uuid4)
 
     created_at: datetime = field(default_factory=datetime.utcnow)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "event_id": str(self.event_id),
+            "session_id": str(self.session_id) if self.session_id else None,
+            "sequence_number": self.sequence_number,
+            "event_type": self.event_type.value if isinstance(self.event_type, EventType) else str(self.event_type),
+            "actor": self.actor.value if isinstance(self.actor, ActorType) else str(self.actor),
+            "priority": self.priority.value if isinstance(self.priority, Priority) else str(self.priority),
+            "payload": self.payload,
+            "created_at": self.created_at.isoformat(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "JournalEvent":
+        return cls(
+            event_id=UUID(data["event_id"]) if isinstance(data.get("event_id"), str) else data.get("event_id", uuid4()),
+            session_id=UUID(data["session_id"]) if isinstance(data.get("session_id"), str) else data.get("session_id"),
+            sequence_number=data.get("sequence_number", 0),
+            event_type=EventType(data["event_type"]) if isinstance(data.get("event_type"), str) and data["event_type"] in EventType.__members__ else EventType.STATE_CHANGED,
+            actor=ActorType(data["actor"]) if isinstance(data.get("actor"), str) and data["actor"] in ActorType.__members__ else ActorType.ENGINE,
+            priority=Priority(data["priority"]) if isinstance(data.get("priority"), str) and data["priority"] in Priority.__members__ else Priority.NORMAL,
+            payload=data.get("payload", {}),
+            created_at=datetime.fromisoformat(data["created_at"]) if isinstance(data.get("created_at"), str) else datetime.utcnow(),
+        )

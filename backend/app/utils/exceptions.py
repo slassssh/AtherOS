@@ -16,3 +16,31 @@ class ToolError(AtherOSError):
 
 class JournalError(AtherOSError):
     pass
+
+
+class LLMError(AtherOSError):
+    pass
+
+
+class DatabaseError(AtherOSError):
+    pass
+
+
+class SecurityError(AtherOSError):
+    pass
+
+
+class PermissionDeniedError(SecurityError):
+    pass
+
+
+class SandboxedExecutionError(ToolError):
+    pass
+
+
+class MemoryError(AtherOSError):
+    pass
+
+
+class SessionError(AtherOSError):
+    pass

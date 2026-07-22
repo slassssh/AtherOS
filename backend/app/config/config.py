@@ -1,4 +1,5 @@
-from backend.app.config.settings import Settings
+from backend.app.config.config_manager import _config_manager
 
-settings = Settings()
-settings.validate()
+# Bootstrap: initialize settings on import
+settings = _config_manager.get()
+config_manager = _config_manager

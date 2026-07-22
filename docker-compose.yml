@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  # ── AtherOS API Server ───────────────────────────────────────────────────
+  atheros-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: atheros:1.0.0-rc1
+    container_name: atheros-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      ATHEROS_ENV: ${ATHEROS_ENV:-production}
+      API_HOST: "0.0.0.0"
+      API_PORT: "8000"
+      API_WORKERS: "${API_WORKERS:-2}"
+      SECRET_KEY: "${SECRET_KEY:?SECRET_KEY must be set in production}"
+      DATABASE_URL: "sqlite:///./data/atheros.db"
+      LLM_PROVIDER: "${LLM_PROVIDER:-mock}"
+      LLM_API_KEY: "${LLM_API_KEY:-}"
+      LLM_MODEL_NAME: "${LLM_MODEL_NAME:-gpt-4o-mini}"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      LOG_FORMAT: "json"
+      WORKSPACE_ROOT: "/app"
+      BACKUP_DIR: "/app/data/backups"
+    volumes:
+      - atheros-data:/app/data
+      - atheros-logs:/app/logs
+      - atheros-backups:/app/data/backups
+      - atheros-plugins:/app/plugins
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - atheros-net
+
+  # ── AtherOS Desktop (optional — comment out for headless deployments) ────
+  # atheros-desktop:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.desktop
+  #   container_name: atheros-desktop
+  #   environment:
+  #     DISPLAY: "${DISPLAY:-:0}"
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   depends_on:
+  #     - atheros-api
+  #   networks:
+  #     - atheros-net
+
+volumes:
+  atheros-data:
+    driver: local
+  atheros-logs:
+    driver: local
+  atheros-backups:
+    driver: local
+  atheros-plugins:
+    driver: local
+
+networks:
+  atheros-net:
+    driver: bridge
